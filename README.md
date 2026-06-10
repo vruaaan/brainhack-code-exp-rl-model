@@ -18,7 +18,7 @@ Two notebooks are included:
 | Notebook | Features | Episodes | Notes |
 |---|---|---|---|
 | `flood_rl_train.ipynb` | 6 sensor features | 5,000 | Basic model |
-| `adv_model.ipynb` | 9 sensor features | up to 100,000 | Production model |
+| `adv_model.ipynb` | 9 sensor features | 20,000 | Production model |
 
 ---
 
@@ -75,7 +75,7 @@ Input (6 or 9 features)
 | Batch size | 64 |
 | Replay buffer | 10,000 |
 | ε (start → min) | 1.0 → 0.01 |
-| ε decay | 0.995 / episode |
+| ε decay | 0.999 / episode |
 | Target net sync | Every 500 episodes |
 
 ---
