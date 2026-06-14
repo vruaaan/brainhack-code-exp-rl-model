@@ -22,6 +22,37 @@ Two notebooks are included:
 
 ---
 
+## Algorithm Selection
+
+This task has a **discrete action space** (4 alert levels) and requires **conservative, interpretable decisions** under noisy sensor input. Below is a comparison of candidate algorithms and why DQN was chosen.
+
+| Algorithm | Action Space | Sample Efficiency | Stability | Notes for this task |
+|---|---|---|---|---|
+| **DQN** | Discrete only | Moderate (replay buffer) | High (target net) | Direct fit — discrete actions, stable training, easy to inspect Q-values |
+| **PPO** | Discrete or continuous | Low (on-policy) | High | Works with discrete actions but wastes samples; on-policy means no replay, so requires far more environment steps to converge |
+| **TD3** | Continuous only | High | High | Designed for continuous control (robotics, locomotion); inapplicable here without action discretisation hacks |
+| **SAC** | Continuous only | High | High | Same issue as TD3 — entropy maximisation over a continuous action space; forced discretisation loses the theoretical guarantees |
+
+### Why not PPO?
+
+PPO is on-policy: every batch of experience is used once and discarded. For this environment, episodes are cheap to simulate but converging on the right alert thresholds requires tens of thousands of episodes. DQN's experience replay means each transition can be reused many times, making it substantially more sample-efficient here.
+
+PPO also outputs a stochastic policy, which is undesirable for a safety-critical alert system where you want deterministic, auditable decisions at inference time.
+
+### Why not TD3 or SAC?
+
+Both TD3 and SAC are built for continuous action spaces. Alert levels are inherently ordinal and discrete — there is no meaningful interpolation between "watch" and "warning". Treating the action space as continuous would require mapping a real-valued output back to a discrete level, adding unnecessary complexity and breaking the algorithms' assumptions about smooth policy gradients.
+
+### Why DQN?
+
+- **Native discrete actions** — Q-values are computed per action, so the agent directly learns the value of each alert level
+- **Experience replay** — old transitions are reused, improving sample efficiency without on-policy constraints
+- **Target network** — a periodically-synced copy of the Q-network stabilises training and prevents oscillation
+- **Interpretability** — at any state, you can inspect all four Q-values to understand the agent's confidence ranking across alert levels
+- **Double DQN** (used here) eliminates the overestimation bias that plain DQN suffers from, which is critical when the cost of over-escalating and under-escalating are asymmetric
+
+---
+
 ## Model Architecture
 
 **Double DQN** with experience replay and a target network.
